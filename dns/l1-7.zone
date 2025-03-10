@@ -1,0 +1,13 @@
+$TTL 3600
+@   IN  SOA ns.l1-7.ephec-ti.be. shisui.l1-7.ephec-ti.be. (
+        2025031001 ; Serial (à incrémenter à chaque modif)
+        3600       ; Refresh
+        1800       ; Retry
+        604800     ; Expire
+        86400 )    ; Minimum TTL
+
+    IN  NS  ns.l1-7.ephec-ti.be.
+
+ns      IN  A   IP.ADDR
+www     IN  A   IP.ADDR
+api     IN  A   IP.ADDR
