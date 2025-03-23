@@ -104,7 +104,6 @@ COPY html/www/index.html /var/www/html/www/index.html
 COPY html/blog/index.html /var/www/html/blog/index.html
 
 EXPOSE 80
-
 ```
 
 **docker-compose.yml**:
@@ -186,11 +185,93 @@ http {
 ```
 
 Et voici le resultat avec les requêtes surlignées:
-![Logs formaté](https://github.com/ShiSui97x/EphecCourses/blob/main/docs/images/tp5_screenshots/formatted_logs.png?raw=true "Logs formaté")
+
+<img src="https://github.com/ShiSui97x/EphecCourses/blob/main/docs/images/tp5_screenshots/formatted_logs.png?raw=true" alt="Logs formaté" width="70%">
 
 # 2. Site web dynamique
 
-- Documentez la mise en oeuvre de votre site web dynamique.  
+- Documentez la mise en oeuvre de votre site web dynamique.
+
+## 2.1.1. Premier test de MariaD
+ Pour commencer, nous avons réalisé un test simple de connexion à une base de données **MariaDB** en exécutant directement un container via la commande suivante :
+
+ ```bash
+ docker run --name mariadbtest -e MYSQL_ROOT_PASSWORD=mypass --rm -d mariadb
+ ```
+
+ Cette commande permet de lancer un container MariaDB avec un mot de passe root défini (`mypass`). Le flag `--rm` supprime automatiquement le container à l’arrêt, ce qui est pratique pour un test temporaire.
+
+ Nous avons ensuite récupéré l'adresse IP du container grâce à la commande :
+
+ ```bash
+ docker inspect mariadbtest | grep "IPAddress"
+ ```
+
+ À l’aide de cette IP, nous avons pu nous connecter à la base de données depuis notre VPS via le client `mysql` :
+
+ ```bash
+ mysql -h <IP_du_container> -u root -p
+ ```
+
+ La connexion a été établie avec succès. Une fois connectés, nous avons utilisé la commande `SHOW DATABASES;` pour vérifier que l'accès fonctionnait correctement.
+
+<img src="https://github.com/ShiSui97x/EphecCourses/blob/main/docs/images/tp5_screenshots/test_db.png?raw=true" alt="Test de la BDD" width="60%">
+
+## 2.1.2. Ajouter du contenu à la base de données
+
+ Après avoir vérifié la connectivité à MariaDB, nous avons ajouté du contenu de test dans une nouvelle base de données nommée **woodytoys**.  
+
+ 1. Nous avons d’abord relancé une connexion au container MariaDB via :
+
+ ```bash
+ mysql -h <IP_du_container> -u root -p
+ ```
+
+ 2. Depuis l’interface MariaDB, nous avons créé la base de données :
+
+ ```sql
+ CREATE DATABASE woodytoys;
+ ```
+
+ 3. Ensuite, nous avons créé un fichier `woodytoys.sql` sur notre VPS contenant le script suivant :
+
+ ```sql
+ USE woodytoys;
+
+ CREATE TABLE products (
+     id mediumint(8) unsigned NOT NULL auto_increment,
+     product_name varchar(255) default NULL,
+     product_price varchar(255) default NULL,
+     PRIMARY KEY (id)
+ ) AUTO_INCREMENT=1;
+
+ INSERT INTO products (product_name, product_price) VALUES 
+ ("Set de 100 cubes multicolores", "50"),
+ ("Yoyo", "10"),
+ ("Circuit de billes", "75"),
+ ("Arc à flèches", "20"),
+ ("Maison de poupées", "150");
+ ```
+
+ 4. Ce fichier a ensuite été injecté dans MariaDB avec la commande :
+
+ ```bash
+ mysql -h <IP_du_container> -u root -pmypass < woodytoys.sql
+ ```
+
+ 5. Enfin, nous avons vérifié l’insertion correcte des données en consultant la base :
+
+ ```sql
+ USE woodytoys;
+ SHOW TABLES;
+ SELECT * FROM products;
+ ```
+
+<img src="https://github.com/ShiSui97x/EphecCourses/blob/main/docs/images/tp5_screenshots/woodytoys.png?raw=true" alt="Woodytoys" width="50%">
+
+Tous les produits sont bien présents, confirmant que notre script fonctionne correctement.
+
+
 - Rédigez une procédure de validation et les scenarii qu'elle comporte.  
 - Appliquez votre procédure de validation à votre configuration et prouvez, via quelques screenshots bien choisis et soigneusement expliqués, que chaque élément fonctionne comme attendu.
 - Documentez votre déploiement Docker Compose, et vérifiez, via la même procédure de validation que plus haut, que tout fonctionne de la même manière qu'à l'étape précédente.  
